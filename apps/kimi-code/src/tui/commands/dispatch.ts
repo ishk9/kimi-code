@@ -42,6 +42,7 @@ import {
   showPermissionPicker,
   showSettingsSelector,
 } from './config';
+import { handleCflowCommand } from './cflow';
 import { handleGoalCommand } from './goal';
 import { handleProviderCommand } from './provider';
 import { handleFeedbackCommand, showMcpServers, showStatusReport, showUsage } from './info';
@@ -80,6 +81,7 @@ export {
   showSettingsSelector,
 } from './config';
 export { handleSwarmCommand } from './swarm';
+export { handleCflowCommand } from './cflow';
 export {
   handleFeedbackCommand,
   showMcpServers,
@@ -310,6 +312,9 @@ async function handleBuiltInSlashCommand(
       return;
     case 'swarm':
       await handleSwarmCommand(host, args);
+      return;
+    case 'cflow':
+      handleCflowCommand(host, args);
       return;
     case 'compact':
       await handleCompactCommand(host, args);

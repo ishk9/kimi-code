@@ -93,6 +93,48 @@ kimi -p "/goal Fix the failing checkout test"
 
 Prompt mode exits with code `0` when the goal completes, `3` when it blocks, and `6` when it pauses. Other `/goal` subcommands, including `next`, are TUI controls and are not handled by `kimi -p`.
 
+## Multi-agent Workflows
+
+`/cflow` creates and runs reusable multi-agent workflows (cflows). A cflow is a saved team of agents: each agent has a message-bus handle, a subagent type, and a well-defined prompt template containing a `{TASK}` placeholder. You define the team once; afterwards the same workflow can be applied to any task.
+
+| Command | Action | Availability |
+| --- | --- | --- |
+| `/cflow create <name> <agents and tasks description>` | Design and save a new workflow. The AI decides the team composition from your rough description, writes a well-defined prompt template for each agent (role, responsibilities, message-bus coordination, deliverables), and saves the workflow to `<kimiHome>/cflows/<name>.yaml` | Idle only |
+| `/cflow run <name> <task>` | Run a saved workflow on a concrete task. Each agent's prompt template is filled with the task and the agents are launched via the `Agent` tool, coordinating over the message bus (`SendMessage` / `CheckMessages`) | Idle only |
+| `/cflow list` | List saved workflows with their agents | Always available |
+| `/cflow show <name>` | Print a workflow's YAML definition | Always available |
+| `/cflow delete <name>` | Delete a workflow | Always available |
+
+Workflow names may contain letters, digits, `-`, and `_`. Workflow files are stored under `<kimiHome>/cflows/` (by default `~/.kimi-code/cflows/`, or `$KIMI_CODE_HOME/cflows/`).
+
+```sh
+/cflow create review-pipeline 3 agents: one implements the feature, one writes tests for it, one adversarially reviews both
+/cflow run review-pipeline add rate limiting to the API client
+```
+
+Workflow files are plain YAML and can be edited by hand:
+
+```yaml
+name: review-pipeline
+description: Implement, test, and review a change
+agents:
+  - handle: builder
+    subagent_type: coder
+    run_in_background: true
+    prompt: |
+      You are the builder. Implement: {TASK}
+      Announce completion to `tester` and `critic` via SendMessage.
+  - handle: tester
+    subagent_type: coder
+    run_in_background: true
+    prompt: |
+      You are the tester. Wait for `builder` via CheckMessages, then write tests for: {TASK}
+coordination: |
+  builder finishes first; critic reviews last and reports the verdict.
+```
+
+If an agent's prompt has no `{TASK}` placeholder, the task is appended to the end of the prompt at run time.
+
 ## Information & Status
 
 | Command | Alias | Description | Always available |

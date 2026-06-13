@@ -22,6 +22,14 @@ const SWARM_ARG_COMPLETIONS: readonly ArgCompletionSpec[] = [
   { value: 'off', description: 'Turn swarm mode off' },
 ];
 
+const CFLOW_ARG_COMPLETIONS: readonly ArgCompletionSpec[] = [
+  { value: 'create', description: 'Design and save a new workflow' },
+  { value: 'run', description: 'Run a saved workflow on a task' },
+  { value: 'list', description: 'List saved workflows' },
+  { value: 'show', description: 'Show a workflow definition' },
+  { value: 'delete', description: 'Delete a workflow' },
+];
+
 /** Argument autocompletion for the `/goal` command (subcommands). */
 export function goalArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
   const nextMatch = argumentPrefix.match(/^next\s+(\S*)$/i);
@@ -39,6 +47,11 @@ export function goalArgumentCompletions(argumentPrefix: string): AutocompleteIte
 /** Argument autocompletion for the `/swarm` command (subcommands). */
 export function swarmArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
   return completeLeadingArg(SWARM_ARG_COMPLETIONS, argumentPrefix);
+}
+
+/** Argument autocompletion for the `/cflow` command (subcommands). */
+export function cflowArgumentCompletions(argumentPrefix: string): AutocompleteItem[] | null {
+  return completeLeadingArg(CFLOW_ARG_COMPLETIONS, argumentPrefix);
 }
 
 export const BUILTIN_SLASH_COMMANDS = [
@@ -84,6 +97,19 @@ export const BUILTIN_SLASH_COMMANDS = [
     priority: 100,
     completeArgs: swarmArgumentCompletions,
     availability: 'idle-only',
+  },
+  {
+    name: 'cflow',
+    aliases: [],
+    description: 'Create and run reusable multi-agent workflows',
+    priority: 80,
+    completeArgs: cflowArgumentCompletions,
+    // list / show / delete / help only print text and stay available; create
+    // and run start a model turn and so are idle-only.
+    availability: (args) => {
+      const action = args.trim().split(/\s+/)[0]?.toLowerCase() ?? '';
+      return action === 'create' || action === 'run' ? 'idle-only' : 'always';
+    },
   },
   {
     name: 'model',

@@ -24,6 +24,7 @@ export {
   showSettingsSelector,
 } from './config';
 export { handleSwarmCommand } from './swarm';
+export { handleCflowCommand } from './cflow';
 export {
   handleFeedbackCommand,
   showMcpServers,
@@ -33,7 +34,7 @@ export {
 export { handlePluginsCommand } from './plugins';
 export { handleReloadCommand, handleReloadTuiCommand } from './reload';
 export { handleGoalCommand, parseGoalCommand } from './goal';
-export { goalArgumentCompletions } from './registry';
+export { goalArgumentCompletions, cflowArgumentCompletions } from './registry';
 export {
   handleForkCommand,
   handleInitCommand,
