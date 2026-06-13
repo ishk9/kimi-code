@@ -246,6 +246,34 @@ max_agent_depth = 3
     expect(roundTripped.loopControl?.maxAgentDepth).toBe(3);
   });
 
+  it('parses and round-trips the browser section with camel/snake conversion', async () => {
+    const dir = makeTempDir();
+    const configPath = join(dir, 'browser.toml');
+    const toml = `
+[browser]
+headless = true
+channel = "chrome"
+timeout_ms = 45000
+download_dir = "data/downloads"
+`;
+    const config = parseConfigString(toml, configPath);
+    expect(config.browser).toMatchObject({
+      headless: true,
+      channel: 'chrome',
+      timeoutMs: 45000,
+      downloadDir: 'data/downloads',
+    });
+
+    await writeConfigFile(configPath, config);
+    const text = await readFile(configPath, 'utf-8');
+    expect(text).toContain('timeout_ms = 45000');
+    expect(text).toContain('download_dir = "data/downloads"');
+    const roundTripped = parseConfigString(text, configPath);
+    expect(roundTripped.browser?.timeoutMs).toBe(45000);
+    expect(roundTripped.browser?.downloadDir).toBe('data/downloads');
+    expect(roundTripped.browser?.headless).toBe(true);
+  });
+
   it('parses and round-trips pluggable web_search providers', async () => {
     const dir = makeTempDir();
     const configPath = join(dir, 'web-search.toml');

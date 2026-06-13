@@ -237,6 +237,24 @@ type = "tavily"
 api_key = "tvly-xxx"
 ```
 
+## `browser`
+
+`browser` configures the Chromium instance launched by the `Browser` tool (and the `/fsdata` command). The browser starts lazily on first use, so sessions that never browse pay nothing. Chromium must be installed once with `npx playwright install chromium`.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `headless` | boolean | No | Run without a visible window. Defaults to `false` (headed) so you can watch the agent drive the page. |
+| `channel` | string | No | Use an installed browser channel (e.g. `chrome`) instead of bundled Chromium. |
+| `timeout_ms` | number | No | Per-action timeout in milliseconds (default `30000`). |
+| `download_dir` | string | No | Where downloads and screenshots are saved. Relative paths resolve against the workspace; defaults to `.kimi-code/downloads`. |
+
+```toml
+[browser]
+headless = false
+timeout_ms = 45000
+download_dir = ".kimi-code/downloads"
+```
+
 ## `permission`
 
 `permission` sets permission rules that are automatically loaded when a session starts, controlling whether the Agent needs user confirmation before calling a tool. Rules are written as a `[[permission.rules]]` array of tables, matched in order — the first matching rule takes effect.

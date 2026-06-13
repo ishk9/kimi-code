@@ -112,6 +112,13 @@ export const BUILTIN_SLASH_COMMANDS = [
     },
   },
   {
+    name: 'fsdata',
+    aliases: [],
+    description: 'Browse a site, download its CSV/Excel data files, and report a manifest',
+    priority: 80,
+    availability: 'idle-only',
+  },
+  {
     name: 'model',
     aliases: [],
     description: 'Switch LLM model',

@@ -68,6 +68,7 @@
     "open": "^10.2.0",
     "pathe": "^2.0.3",
     "picomatch": "^4.0.4",
+    "playwright": "^1.60.0",
     "proper-lockfile": "^4.1.2",
     "regexp.escape": "^2.0.1",
     "retry": "0.13.1",

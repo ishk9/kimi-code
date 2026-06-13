@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
+import { resolve as resolvePath } from 'node:path';
 
 import { ErrorCodes, KimiError } from '#/errors';
 import { getRootLogger, log } from '#/logging/logger';
@@ -7,6 +8,7 @@ import { PluginManager } from '#/plugin';
 import { LocalFetchURLProvider } from '#/tools/providers/local-fetch-url';
 import { MoonshotFetchURLProvider } from '#/tools/providers/moonshot-fetch-url';
 import { MoonshotWebSearchProvider } from '#/tools/providers/moonshot-web-search';
+import { PlaywrightBrowserController } from '#/tools/providers/playwright-browser';
 import { PluggableWebSearchProvider } from '#/tools/providers/pluggable-web-search';
 import type { PromisableMethods } from '#/utils/types';
 import { getCoreVersion } from '#/version';
@@ -984,6 +986,20 @@ async function createRuntimeConfig(input: {
         })
       : moonshotSearcher;
 
+  // Browser automation is always available; Playwright is launched lazily on
+  // first use, so a session that never browses pays nothing.
+  const browserConfig = input.config.browser;
+  const downloadDir =
+    browserConfig?.downloadDir !== undefined
+      ? resolvePath(process.cwd(), browserConfig.downloadDir)
+      : resolvePath(process.cwd(), '.kimi-code', 'downloads');
+  const browser = new PlaywrightBrowserController({
+    headless: browserConfig?.headless,
+    channel: browserConfig?.channel,
+    timeoutMs: browserConfig?.timeoutMs,
+    downloadDir,
+  });
+
   return {
     urlFetcher:
       fetchService?.baseUrl === undefined
@@ -995,6 +1011,7 @@ async function createRuntimeConfig(input: {
             ...serviceCredentials(fetchService, input.resolveOAuthTokenProvider),
           }),
     webSearcher,
+    browser,
   };
 }
 

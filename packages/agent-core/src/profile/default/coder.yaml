@@ -15,6 +15,7 @@ tools:
   - Edit
   - WebSearch
   - FetchURL
+  - Browser
   - Agent
   - TaskList
   - TaskOutput

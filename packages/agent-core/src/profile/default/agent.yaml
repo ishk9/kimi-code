@@ -25,6 +25,7 @@ tools:
   - Agent
   - AgentSwarm
   - FetchURL
+  - Browser
   - SendMessage
   - CheckMessages
   - ListAgents

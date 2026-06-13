@@ -135,6 +135,20 @@ coordination: |
 
 If an agent's prompt has no `{TASK}` placeholder, the task is appended to the end of the prompt at run time.
 
+## Web data gathering
+
+`/fsdata` drives the `Browser` tool (a real Chromium browser) to collect data files from a website.
+
+| Command | Description | Availability |
+| --- | --- | --- |
+| `/fsdata <url> <region / place / years / what to do>` | Open `<url>` in a browser, navigate to the region/place you name, find the CSV/Excel files, download them under `.kimi-code/downloads/fsdata/…`, and report a manifest. If you don't specify which years, the agent asks before downloading. | Idle only |
+
+```sh
+/fsdata https://www.bom.gov.au/watl/eto/maps/aus.shtml Victoria, Mildura — evapotranspiration CSV for 2020-2023
+```
+
+This relies on the `Browser` tool, which requires Chromium (`npx playwright install chromium`). Browser visibility and the download directory are configured under `[browser]` in `config.toml`.
+
 ## Information & Status
 
 | Command | Alias | Description | Always available |

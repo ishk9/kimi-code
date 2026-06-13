@@ -43,6 +43,7 @@ import {
   showSettingsSelector,
 } from './config';
 import { handleCflowCommand } from './cflow';
+import { handleFsdataCommand } from './fsdata';
 import { handleGoalCommand } from './goal';
 import { handleProviderCommand } from './provider';
 import { handleFeedbackCommand, showMcpServers, showStatusReport, showUsage } from './info';
@@ -315,6 +316,9 @@ async function handleBuiltInSlashCommand(
       return;
     case 'cflow':
       handleCflowCommand(host, args);
+      return;
+    case 'fsdata':
+      handleFsdataCommand(host, args);
       return;
     case 'compact':
       await handleCompactCommand(host, args);

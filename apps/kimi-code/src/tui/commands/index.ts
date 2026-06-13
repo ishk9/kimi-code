@@ -25,6 +25,7 @@ export {
 } from './config';
 export { handleSwarmCommand } from './swarm';
 export { handleCflowCommand } from './cflow';
+export { handleFsdataCommand } from './fsdata';
 export {
   handleFeedbackCommand,
   showMcpServers,

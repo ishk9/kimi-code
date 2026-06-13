@@ -162,6 +162,22 @@ export const ServicesConfigSchema = z.object({
 
 export type ServicesConfig = z.infer<typeof ServicesConfigSchema>;
 
+// Browser automation (Playwright). Controls the host-launched Chromium used by
+// the `Browser` tool. All fields are optional; sensible defaults apply.
+export const BrowserConfigSchema = z.object({
+  // Run without a visible window. Defaults to headed (false) so the user can
+  // watch the agent drive the browser.
+  headless: z.boolean().optional(),
+  // Use an installed browser channel (e.g. 'chrome') instead of bundled Chromium.
+  channel: z.string().optional(),
+  // Per-action timeout in milliseconds.
+  timeoutMs: z.number().int().min(1).optional(),
+  // Absolute or workspace-relative directory for downloads/screenshots.
+  downloadDir: z.string().optional(),
+});
+
+export type BrowserConfig = z.infer<typeof BrowserConfigSchema>;
+
 const McpServerCommonFields = {
   enabled: z.boolean().optional(),
   startupTimeoutMs: z.number().int().min(1).optional(),
@@ -226,6 +242,7 @@ export const KimiConfigSchema = z.object({
   permission: PermissionConfigSchema.optional(),
   hooks: z.array(HookDefSchema).optional(),
   services: ServicesConfigSchema.optional(),
+  browser: BrowserConfigSchema.optional(),
   mergeAllAvailableSkills: z.boolean().optional(),
   extraSkillDirs: z.array(z.string()).optional(),
   loopControl: LoopControlSchema.optional(),
@@ -266,6 +283,7 @@ export const KimiConfigPatchSchema = z
     permission: PermissionConfigPatchSchema.optional(),
     hooks: z.array(HookDefSchema).optional(),
     services: ServicesConfigPatchSchema.optional(),
+    browser: BrowserConfigSchema.partial().optional(),
     mergeAllAvailableSkills: z.boolean().optional(),
     extraSkillDirs: z.array(z.string()).optional(),
     loopControl: LoopControlPatchSchema.optional(),

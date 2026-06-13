@@ -434,6 +434,7 @@ export class ToolManager {
           new b.AgentSwarmTool(this.agent.subagentHost, this.agent.swarmMode),
         toolServices?.webSearcher && new b.WebSearchTool(toolServices.webSearcher),
         toolServices?.urlFetcher && new b.FetchURLTool(toolServices.urlFetcher),
+        toolServices?.browser && new b.BrowserTool(toolServices.browser),
         new b.SendMessageTool(resolveCommsRef),
         new b.CheckMessagesTool(resolveCommsRef),
         new b.ListAgentsTool(resolveCommsRef),
