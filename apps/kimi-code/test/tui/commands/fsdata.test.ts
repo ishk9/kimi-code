@@ -38,47 +38,70 @@ function lastInput(host: SlashCommandHost): string {
 }
 
 describe('handleFsdataCommand', () => {
-  it('prints usage when no url is given', () => {
+  it('prints usage when nothing is given', () => {
     const host = makeHost();
     handleFsdataCommand(host, '');
-    expect(lastStatus(host)).toContain('/fsdata <url>');
-    expect(host.sendNormalUserInput).not.toHaveBeenCalled();
-  });
-
-  it('rejects a non-url first argument', () => {
-    const host = makeHost();
-    handleFsdataCommand(host, 'not-a-url some place');
-    expect(lastError(host)).toContain('not a valid http(s) URL');
+    expect(lastStatus(host)).toContain('/fsdata <region> <place>');
     expect(host.sendNormalUserInput).not.toHaveBeenCalled();
   });
 
   it('blocks when no model/session is configured', () => {
     const host = makeHost({ model: '' });
-    handleFsdataCommand(host, 'https://example.com region X');
+    handleFsdataCommand(host, 'nsw Badgerys Creek 2020');
     expect(host.showError).toHaveBeenCalled();
     expect(host.sendNormalUserInput).not.toHaveBeenCalled();
   });
 
-  it('sends a browser-driving prompt for a valid url + request', () => {
+  it('hardcodes the BoM site and resolves region, station slug, and a year range', () => {
     const host = makeHost();
-    handleFsdataCommand(
-      host,
-      'https://www.bom.gov.au/watl/eto/maps/aus.shtml Victoria, Mildura — CSV for 2020-2023',
-    );
-    expect(host.track).toHaveBeenCalledWith('fsdata_invoked', { has_request: true });
+    handleFsdataCommand(host, 'nsw Badgerys Creek 2020-2023');
+    expect(host.track).toHaveBeenCalledWith('fsdata_invoked', {
+      has_state: true,
+      has_place: true,
+      year_count: 4,
+    });
     const prompt = lastInput(host);
+    // hardcoded BoM entry point + state daily table for the resolved region
     expect(prompt).toContain('https://www.bom.gov.au/watl/eto/maps/aus.shtml');
-    expect(prompt).toContain('Victoria, Mildura');
+    expect(prompt).toContain('https://www.bom.gov.au/watl/eto/tables/nsw/daily.shtml');
+    // resolved station slug + region label
+    expect(prompt).toContain('New South Wales (nsw)');
+    expect(prompt).toContain('badgerys_creek');
     expect(prompt).toContain('Browser');
-    expect(prompt).toContain('extensions: ["csv","xlsx","xls"]');
-    // honours the "ask about years if unspecified" requirement
+    // the expanded range 2020,2021,2022,2023
+    expect(prompt).toContain('2020, 2021, 2022, 2023');
+  });
+
+  it('accepts full state names and a discrete year list', () => {
+    const host = makeHost();
+    handleFsdataCommand(host, 'Victoria Mildura 2021 2022');
+    const prompt = lastInput(host);
+    expect(prompt).toContain('https://www.bom.gov.au/watl/eto/tables/vic/daily.shtml');
+    expect(prompt).toContain('Victoria (vic)');
+    expect(prompt).toContain('mildura');
+    expect(prompt).toContain('2021, 2022');
+  });
+
+  it('asks for years when none are supplied', () => {
+    const host = makeHost();
+    handleFsdataCommand(host, 'qld Cairns Airport');
+    expect(host.track).toHaveBeenCalledWith('fsdata_invoked', {
+      has_state: true,
+      has_place: true,
+      year_count: 0,
+    });
+    const prompt = lastInput(host);
+    expect(prompt).toContain('cairns_airport');
     expect(prompt).toContain('STOP and ask');
   });
 
-  it('still works (and flags no request) when only a url is given', () => {
+  it('falls back to the map when no region is recognised', () => {
     const host = makeHost();
-    handleFsdataCommand(host, 'https://example.com/data');
-    expect(host.track).toHaveBeenCalledWith('fsdata_invoked', { has_request: false });
-    expect(lastInput(host)).toContain('https://example.com/data');
+    handleFsdataCommand(host, 'Mildura 2021');
+    const prompt = lastInput(host);
+    // no region resolved -> start at the map, slug uses placeholder state
+    expect(prompt).toContain('https://www.bom.gov.au/watl/eto/maps/aus.shtml');
+    expect(prompt).toContain('state="<state>"');
+    expect(prompt).toContain('mildura');
   });
 });

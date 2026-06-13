@@ -114,7 +114,7 @@ export const BUILTIN_SLASH_COMMANDS = [
   {
     name: 'fsdata',
     aliases: [],
-    description: 'Browse a site, download its CSV/Excel data files, and report a manifest',
+    description: 'Download BoM evapotranspiration CSVs for a station (region place years)',
     priority: 80,
     availability: 'idle-only',
   },

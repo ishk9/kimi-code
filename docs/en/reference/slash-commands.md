@@ -137,15 +137,19 @@ If an agent's prompt has no `{TASK}` placeholder, the task is appended to the en
 
 ## Web data gathering
 
-`/fsdata` drives the `Browser` tool (a real Chromium browser) to collect data files from a website.
+`/fsdata` drives the `Browser` tool (a real Chromium browser) to download data from the Bureau of Meteorology evapotranspiration archive (`bom.gov.au`). The BoM site layout is hardcoded, so you only supply a region, a station name, and the years you want.
 
 | Command | Description | Availability |
 | --- | --- | --- |
-| `/fsdata <url> <region / place / years / what to do>` | Open `<url>` in a browser, navigate to the region/place you name, find the CSV/Excel files, download them under `.kimi-code/downloads/fsdata/…`, and report a manifest. If you don't specify which years, the agent asks before downloading. | Idle only |
+| `/fsdata <region> <place> [years]` | Open the BoM evapotranspiration archive in a browser, resolve `<region>` (NSW, VIC, QLD, WA, SA, TAS, NT) to its daily table, match `<place>` to a weather station, and download that station's monthly CSV files for the requested years under `.kimi-code/downloads/fsdata/bom-eto/<state>/<station>`, then report a manifest. If you omit the years, the agent asks before downloading. | Idle only |
 
 ```sh
-/fsdata https://www.bom.gov.au/watl/eto/maps/aus.shtml Victoria, Mildura — evapotranspiration CSV for 2020-2023
+/fsdata nsw Badgerys Creek 2020-2023
+/fsdata Victoria Mildura 2021 2022
+/fsdata qld Cairns Airport
 ```
+
+`region` accepts the abbreviation or full state name. `years` can be a space-separated list (`2021 2022`) or a range (`2020-2023`).
 
 This relies on the `Browser` tool, which requires Chromium (`npx playwright install chromium`). Browser visibility and the download directory are configured under `[browser]` in `config.toml`.
 
