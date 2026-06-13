@@ -30,6 +30,9 @@ export default defineConfig({
   },
   deps: {
     alwaysBundle: [/^@moonshot-ai\//],
-    neverBundle: [],
+    // Playwright must stay external: it resolves `browsers.json` and the
+    // browser binary via paths relative to its own package, which break if the
+    // package is inlined into the app bundle.
+    neverBundle: ['playwright', 'playwright-core'],
   },
 });
