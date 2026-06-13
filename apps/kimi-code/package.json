@@ -23,7 +23,7 @@
     "tui"
   ],
   "bin": {
-    "kimi": "dist/main.mjs"
+    "rain": "dist/main.mjs"
   },
   "files": [
     "dist",
@@ -72,6 +72,7 @@
     "chalk": "^5.4.1",
     "cli-highlight": "^2.1.11",
     "commander": "^13.1.0",
+    "js-yaml": "^4.1.1",
     "pathe": "^2.0.3",
     "semver": "^7.7.4",
     "smol-toml": "^1.6.1",
@@ -83,6 +84,7 @@
     "@moonshot-ai/kimi-code-sdk": "workspace:^",
     "@moonshot-ai/kimi-telemetry": "workspace:^",
     "@moonshot-ai/migration-legacy": "workspace:^",
+    "@types/js-yaml": "^4.0.9",
     "@types/semver": "^7.7.0",
     "@types/yazl": "^2.4.6",
     "postject": "1.0.0-alpha.6",

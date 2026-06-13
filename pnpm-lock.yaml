@@ -81,6 +81,9 @@ importers:
       commander:
         specifier: ^13.1.0
         version: 13.1.0
+      js-yaml:
+        specifier: ^4.1.1
+        version: 4.1.1
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -109,6 +112,9 @@ importers:
       '@moonshot-ai/migration-legacy':
         specifier: workspace:^
         version: link:../../packages/migration-legacy
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
       '@types/semver':
         specifier: ^7.7.0
         version: 7.7.1
