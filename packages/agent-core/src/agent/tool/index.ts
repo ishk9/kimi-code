@@ -1,5 +1,6 @@
 import { uniq } from '@antfu/utils';
 import type { ChatProvider, Tool } from '@moonshot-ai/kosong';
+import { basename } from 'pathe';
 import picomatch from 'picomatch';
 
 import type { Agent } from '..';
@@ -376,6 +377,21 @@ export class ToolManager {
       this.enabledTools.has('TaskOutput') &&
       this.enabledTools.has('TaskStop');
     const goalToolsEnabled = this.agent.type === 'main';
+    // Decentralized inter-agent messaging: every agent sharing this cwd uses one
+    // bus. Handle/path are resolved lazily because profileName and cwd are not
+    // stable at construction time.
+    const resolveCommsRef = (): b.CommsAgentRef => {
+      const agentId = this.agent.homedir ? basename(this.agent.homedir) : undefined;
+      return {
+        handle: b.deriveCommsHandle({
+          type: this.agent.type,
+          profileName: this.agent.config.profileName,
+          agentId,
+        }),
+        role: this.agent.config.profileName ?? this.agent.type,
+        busPath: b.resolveCommsBusPath(this.agent.config.cwd),
+      };
+    };
     this.builtinTools = new Map(
       [
         new b.ReadTool(kaos, workspace),
@@ -418,6 +434,9 @@ export class ToolManager {
           new b.AgentSwarmTool(this.agent.subagentHost, this.agent.swarmMode),
         toolServices?.webSearcher && new b.WebSearchTool(toolServices.webSearcher),
         toolServices?.urlFetcher && new b.FetchURLTool(toolServices.urlFetcher),
+        new b.SendMessageTool(resolveCommsRef),
+        new b.CheckMessagesTool(resolveCommsRef),
+        new b.ListAgentsTool(resolveCommsRef),
       ]
         .filter((tool) => !!tool)
         .map((tool) => [tool.name, tool] as const),

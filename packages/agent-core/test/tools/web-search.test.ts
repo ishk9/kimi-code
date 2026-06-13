@@ -247,6 +247,21 @@ describe('WebSearchTool', () => {
     });
   });
 
+  it('passes the selected provider through to the injected provider', async () => {
+    const provider = fakeProvider([]);
+    const tool = new WebSearchTool(provider);
+    await executeTool(tool, {
+      turnId: 't1',
+      toolCallId: 'c-provider',
+      args: { query: 'test', provider: 'brave' },
+      signal,
+    });
+    expect(provider.search).toHaveBeenCalledWith('test', {
+      provider: 'brave',
+      toolCallId: 'c-provider',
+    });
+  });
+
   it('resolveExecution description truncates long queries', () => {
     const tool = new WebSearchTool(fakeProvider());
     const execution = tool.resolveExecution({ query: 'a'.repeat(60) });

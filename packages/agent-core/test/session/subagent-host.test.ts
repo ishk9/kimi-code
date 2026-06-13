@@ -304,9 +304,12 @@ describe('SessionSubagentHost', () => {
     expect(child.llmCalls[0]?.systemPrompt).toContain('codebase exploration specialist');
     expect(child.llmCalls[0]?.tools.map((tool) => tool.name).toSorted()).toEqual([
       'Bash',
+      'CheckMessages',
       'Glob',
       'Grep',
+      'ListAgents',
       'Read',
+      'SendMessage',
     ]);
     expect(child.llmCalls[0]?.history).toMatchObject([
       {
@@ -402,10 +405,16 @@ describe('SessionSubagentHost', () => {
     expect(child.llmCalls[0]?.systemPrompt).toContain('You are now running as a subagent.');
     expect(child.llmCalls[0]?.tools.map((tool) => tool.name).toSorted()).toEqual([
       'Bash',
+      'CheckMessages',
       'Edit',
       'Glob',
       'Grep',
+      'ListAgents',
       'Read',
+      'SendMessage',
+      'TaskList',
+      'TaskOutput',
+      'TaskStop',
       'Write',
     ]);
     expect(child.llmCalls[0]?.history).toMatchObject([
@@ -465,6 +474,41 @@ describe('SessionSubagentHost', () => {
         signal,
       }),
     ).rejects.toThrow('Subagent profile "btw" was not found');
+    expect(createAgent).not.toHaveBeenCalled();
+  });
+
+  it('rejects spawning beyond the configured max agent depth', async () => {
+    const parent = testAgent();
+    parent.configure();
+    const createAgent = vi.fn();
+    const metadataAgents: Session['metadata']['agents'] = {
+      'agent-2': { homedir: '/tmp/agents/agent-2', type: 'sub', parentAgentId: 'agent-1' },
+      'agent-1': { homedir: '/tmp/agents/agent-1', type: 'sub', parentAgentId: 'agent-0' },
+      'agent-0': { homedir: '/tmp/agents/agent-0', type: 'sub', parentAgentId: 'main' },
+      main: { homedir: '/tmp/agents/main', type: 'main', parentAgentId: null },
+    };
+    const host = new SessionSubagentHost(
+      {
+        agents: new Map([['agent-2', parent.agent]]),
+        metadata: { agents: metadataAgents },
+        ensureAgentResumed: vi.fn(async () => parent.agent),
+        createAgent,
+      } as never,
+      // The owner sits at depth 3 (agent-2 -> agent-1 -> agent-0 -> main),
+      // which exceeds the default max depth of 2.
+      'agent-2',
+    );
+
+    await expect(
+      host.spawn({
+        profileName: 'coder',
+        parentToolCallId: 'call_agent',
+        prompt: 'Spawn one level too deep',
+        description: 'Too deep',
+        runInBackground: false,
+        signal,
+      }),
+    ).rejects.toThrow('Maximum subagent depth (2) reached');
     expect(createAgent).not.toHaveBeenCalled();
   });
 

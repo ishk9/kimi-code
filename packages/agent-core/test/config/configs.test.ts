@@ -229,6 +229,63 @@ source = { kind = "apiJson", url = "https://registry.example/api.json", apiKey =
     });
   });
 
+  it('parses and round-trips loop_control.max_agent_depth', async () => {
+    const dir = makeTempDir();
+    const configPath = join(dir, 'agent-depth.toml');
+    const toml = `
+[loop_control]
+max_agent_depth = 3
+`;
+    const config = parseConfigString(toml, configPath);
+    expect(config.loopControl?.maxAgentDepth).toBe(3);
+
+    await writeConfigFile(configPath, config);
+    const text = await readFile(configPath, 'utf-8');
+    expect(text).toContain('max_agent_depth = 3');
+    const roundTripped = parseConfigString(text, configPath);
+    expect(roundTripped.loopControl?.maxAgentDepth).toBe(3);
+  });
+
+  it('parses and round-trips pluggable web_search providers', async () => {
+    const dir = makeTempDir();
+    const configPath = join(dir, 'web-search.toml');
+    const toml = `
+[services.web_search]
+default_provider = "openai"
+
+[services.web_search.providers.openai]
+type = "openai"
+api_key = "sk-openai"
+model = "gpt-5-mini"
+
+[services.web_search.providers.brave]
+type = "brave"
+api_key = "brave-key"
+base_url = "https://api.search.brave.com/res/v1/web/search"
+`;
+    const config = parseConfigString(toml, configPath);
+    expect(config.services?.webSearch?.defaultProvider).toBe('openai');
+    expect(config.services?.webSearch?.providers['openai']).toMatchObject({
+      type: 'openai',
+      apiKey: 'sk-openai',
+      model: 'gpt-5-mini',
+    });
+    expect(config.services?.webSearch?.providers['brave']).toMatchObject({
+      type: 'brave',
+      apiKey: 'brave-key',
+      baseUrl: 'https://api.search.brave.com/res/v1/web/search',
+    });
+
+    await writeConfigFile(configPath, config);
+    const text = await readFile(configPath, 'utf-8');
+    const roundTripped = parseConfigString(text, configPath);
+    expect(roundTripped.services?.webSearch?.defaultProvider).toBe('openai');
+    expect(roundTripped.services?.webSearch?.providers['brave']?.baseUrl).toBe(
+      'https://api.search.brave.com/res/v1/web/search',
+    );
+    expect(roundTripped.services?.webSearch?.providers['openai']?.model).toBe('gpt-5-mini');
+  });
+
   it('round-trips OAuth refs with scoped OAuth hosts', async () => {
     const dir = makeTempDir();
     const configPath = join(dir, 'oauth-ref.toml');

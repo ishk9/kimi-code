@@ -32,6 +32,12 @@ import SUMMARY_CONTINUATION_PROMPT from './summary-continuation.md?raw';
 export const DEFAULT_SUBAGENT_TIMEOUT_MS = 30 * 60 * 1000;
 export const DEFAULT_SUBAGENT_TIMEOUT_DESCRIPTION = '30 minutes';
 
+// Maximum subagent nesting depth when not overridden by
+// `loop_control.max_agent_depth`. The main agent is depth 0; an agent may
+// spawn subagents only while its own depth is below this limit. Default 2
+// allows main -> subagent -> sub-subagent.
+export const DEFAULT_MAX_AGENT_DEPTH = 2;
+
 export type {
   SubagentResult as QueuedSubagentRunResult,
   QueuedSubagentTask,
@@ -114,6 +120,7 @@ export class SessionSubagentHost {
     options.signal.throwIfAborted();
 
     const parent = await this.session.ensureAgentResumed(this.ownerAgentId);
+    this.assertWithinDepthLimit(parent);
     const profile = this.resolveProfile(parent, options.profileName);
     const { id, agent } = await this.session.createAgent(
       { type: 'sub', generate: parent.rawGenerate },
@@ -260,6 +267,39 @@ export class SessionSubagentHost {
       return undefined;
     }
     return metadata.swarmItem;
+  }
+
+  /**
+   * Depth of an agent within the subagent tree. The main agent (no parent) is
+   * depth 0; each level of `parentAgentId` adds one.
+   */
+  private agentDepth(agentId: string): number {
+    const agents = this.session.metadata?.agents ?? {};
+    let depth = 0;
+    let current: string | null = agentId;
+    const seen = new Set<string>();
+    while (current !== null && !seen.has(current)) {
+      seen.add(current);
+      const parentId: string | null = agents[current]?.parentAgentId ?? null;
+      if (parentId === null) break;
+      depth += 1;
+      current = parentId;
+    }
+    return depth;
+  }
+
+  /**
+   * Reject a spawn when the spawning agent has reached the configured maximum
+   * nesting depth, so recursive subagent trees stay bounded.
+   */
+  private assertWithinDepthLimit(parent: Agent): void {
+    const maxDepth = parent.kimiConfig?.loopControl?.maxAgentDepth ?? DEFAULT_MAX_AGENT_DEPTH;
+    const ownerDepth = this.agentDepth(this.ownerAgentId);
+    if (ownerDepth >= maxDepth) {
+      throw new Error(
+        `Maximum subagent depth (${maxDepth}) reached. This agent is already nested ${ownerDepth} level(s) deep and cannot launch further subagents. Increase loop_control.max_agent_depth to allow deeper nesting.`,
+      );
+    }
   }
 
   private resolveProfile(parent: Agent, profileName: string): ResolvedAgentProfile {

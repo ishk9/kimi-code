@@ -29,7 +29,12 @@ export interface WebSearchResult {
 export interface WebSearchProvider {
   search(
     query: string,
-    options?: { limit?: number; includeContent?: boolean; toolCallId?: string },
+    options?: {
+      limit?: number;
+      includeContent?: boolean;
+      toolCallId?: string;
+      provider?: string;
+    },
   ): Promise<WebSearchResult[]>;
 }
 
@@ -52,6 +57,12 @@ export const WebSearchInputSchema = z.object({
     .default(false)
     .describe(
       'Whether to include the content of the web pages in the results. It can consume a large amount of tokens when this is set to true. You should avoid enabling this when `limit` is set to a large value.',
+    )
+    .optional(),
+  provider: z
+    .string()
+    .describe(
+      'Optional web search provider to use (one of the configured providers, e.g. openai, brave, tavily). Defaults to the configured default provider.',
     )
     .optional(),
 });
@@ -85,11 +96,17 @@ export class WebSearchTool implements BuiltinTool<WebSearchInput> {
     }: ExecutableToolContext,
   ): Promise<ExecutableToolResult> {
     try {
-      const opts: { limit?: number; includeContent?: boolean; toolCallId?: string } = {
+      const opts: {
+        limit?: number;
+        includeContent?: boolean;
+        toolCallId?: string;
+        provider?: string;
+      } = {
         toolCallId,
       };
       if (args.limit !== undefined) opts.limit = args.limit;
       if (args.include_content !== undefined) opts.includeContent = args.include_content;
+      if (args.provider !== undefined) opts.provider = args.provider;
       const results = await this.provider.search(args.query, opts);
       const builder = new ToolResultBuilder({ maxLineLength: null });
 

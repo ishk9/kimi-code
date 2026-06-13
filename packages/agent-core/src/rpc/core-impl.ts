@@ -7,6 +7,7 @@ import { PluginManager } from '#/plugin';
 import { LocalFetchURLProvider } from '#/tools/providers/local-fetch-url';
 import { MoonshotFetchURLProvider } from '#/tools/providers/moonshot-fetch-url';
 import { MoonshotWebSearchProvider } from '#/tools/providers/moonshot-web-search';
+import { PluggableWebSearchProvider } from '#/tools/providers/pluggable-web-search';
 import type { PromisableMethods } from '#/utils/types';
 import { getCoreVersion } from '#/version';
 import { resolveThinkingLevel } from '../agent/config/thinking';
@@ -961,6 +962,28 @@ async function createRuntimeConfig(input: {
   const searchService = input.config.services?.moonshotSearch;
   const fetchService = input.config.services?.moonshotFetch;
 
+  // Moonshot remains the fallback web searcher; it is also reused for any
+  // `type: 'moonshot'` entries in the pluggable config that omit a baseUrl.
+  const moonshotSearcher =
+    searchService?.baseUrl === undefined
+      ? undefined
+      : new MoonshotWebSearchProvider({
+          baseUrl: searchService.baseUrl,
+          defaultHeaders: input.kimiRequestHeaders,
+          ...serviceCredentials(searchService, input.resolveOAuthTokenProvider),
+        });
+
+  // When the pluggable web-search config declares at least one provider, route
+  // searches through the multiplexer; otherwise keep the Moonshot-only path.
+  const webSearchConfig = input.config.services?.webSearch;
+  const webSearcher =
+    webSearchConfig !== undefined && Object.keys(webSearchConfig.providers).length > 0
+      ? new PluggableWebSearchProvider(webSearchConfig, {
+          defaultHeaders: input.kimiRequestHeaders,
+          moonshot: moonshotSearcher,
+        })
+      : moonshotSearcher;
+
   return {
     urlFetcher:
       fetchService?.baseUrl === undefined
@@ -971,14 +994,7 @@ async function createRuntimeConfig(input: {
             defaultHeaders: input.kimiRequestHeaders,
             ...serviceCredentials(fetchService, input.resolveOAuthTokenProvider),
           }),
-    webSearcher:
-      searchService?.baseUrl === undefined
-        ? undefined
-        : new MoonshotWebSearchProvider({
-            baseUrl: searchService.baseUrl,
-            defaultHeaders: input.kimiRequestHeaders,
-            ...serviceCredentials(searchService, input.resolveOAuthTokenProvider),
-          }),
+    webSearcher,
   };
 }
 

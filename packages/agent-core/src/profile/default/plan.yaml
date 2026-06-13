@@ -17,3 +17,6 @@ tools:
   - Grep
   - WebSearch
   - FetchURL
+  - SendMessage
+  - CheckMessages
+  - ListAgents

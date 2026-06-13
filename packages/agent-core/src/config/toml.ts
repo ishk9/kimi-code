@@ -20,6 +20,7 @@ import {
   type ProviderConfig,
   type ServicesConfig,
   type ThinkingConfig,
+  type WebSearchConfig,
   validateConfig,
 } from '#/config/schema';
 import { atomicWrite } from '#/utils/fs';
@@ -307,7 +308,7 @@ export function transformTomlData(data: Record<string, unknown>): Record<string,
     } else if (targetKey === 'permission' && isPlainObject(value)) {
       result[targetKey] = transformPermissionData(value);
     } else if (targetKey === 'services' && isPlainObject(value)) {
-      result[targetKey] = transformRecord(value, transformServiceData, snakeToCamel);
+      result[targetKey] = transformServicesData(value);
     } else if (targetKey === 'loopControl' && isPlainObject(value)) {
       result[targetKey] = transformLoopControlData(value);
     } else if (targetKey === 'background' && isPlainObject(value)) {
@@ -416,6 +417,21 @@ function transformPermissionRule(value: unknown, decision?: 'allow' | 'deny' | '
   return out;
 }
 
+function transformServicesData(data: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const targetKey = snakeToCamel(key);
+    if (targetKey === 'webSearch' && isPlainObject(value)) {
+      out[targetKey] = transformWebSearchData(value);
+    } else if (isPlainObject(value)) {
+      out[targetKey] = transformServiceData(value);
+    } else {
+      out[targetKey] = value;
+    }
+  }
+  return out;
+}
+
 function transformServiceData(data: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
@@ -424,6 +440,19 @@ function transformServiceData(data: Record<string, unknown>): Record<string, unk
       out[targetKey] = isPlainObject(value) ? transformPlainObject(value) : value;
     } else if (targetKey === 'customHeaders') {
       out[targetKey] = cloneObjectValue(value);
+    } else {
+      out[targetKey] = value;
+    }
+  }
+  return out;
+}
+
+function transformWebSearchData(data: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const targetKey = snakeToCamel(key);
+    if (targetKey === 'providers' && isPlainObject(value)) {
+      out[targetKey] = transformRecord(value, transformPlainObject);
     } else {
       out[targetKey] = value;
     }
@@ -607,6 +636,26 @@ function servicesToToml(services: ServicesConfig, rawServices: unknown): Record<
   } else {
     delete out['moonshot_fetch'];
   }
+  if (services.webSearch !== undefined) {
+    out['web_search'] = webSearchToToml(services.webSearch);
+  } else {
+    delete out['web_search'];
+  }
+  return out;
+}
+
+function webSearchToToml(webSearch: WebSearchConfig): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  setDefined(out, 'default_provider', webSearch.defaultProvider);
+  const providers: Record<string, unknown> = {};
+  for (const [name, provider] of Object.entries(webSearch.providers ?? {})) {
+    const entry: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(provider)) {
+      setDefined(entry, camelToSnake(key), value);
+    }
+    providers[name] = entry;
+  }
+  out['providers'] = providers;
   return out;
 }
 

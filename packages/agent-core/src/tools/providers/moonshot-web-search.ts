@@ -55,7 +55,7 @@ export class MoonshotWebSearchProvider implements WebSearchProvider {
 
   async search(
     query: string,
-    options?: { limit?: number; includeContent?: boolean; toolCallId?: string },
+    options?: { limit?: number; includeContent?: boolean; toolCallId?: string; provider?: string },
   ): Promise<WebSearchResult[]> {
     const body = {
       text_query: query,

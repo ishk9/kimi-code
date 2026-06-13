@@ -25,6 +25,9 @@ tools:
   - Agent
   - AgentSwarm
   - FetchURL
+  - SendMessage
+  - CheckMessages
+  - ListAgents
   - AskUserQuestion
   - EnterPlanMode
   - ExitPlanMode

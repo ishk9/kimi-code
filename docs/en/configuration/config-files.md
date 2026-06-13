@@ -202,6 +202,41 @@ base_url = "https://api.moonshot.cn/v1/fetch"
 api_key = "sk-xxx"
 ```
 
+### Pluggable web search (`services.web_search`)
+
+`services.web_search` makes the `WebSearch` tool selectable across multiple providers. When at least one provider is configured here, it replaces the `moonshot_search` path. The model can choose a provider per call via the tool's optional `provider` argument; otherwise the default provider is used.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `default_provider` | `string` | No | Name of the provider used when the call does not specify one. Falls back to `openai` if that provider exists, otherwise the first configured provider |
+| `providers` | `table` | Yes | Map of provider name → provider config |
+
+Each entry under `providers` accepts:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `type` | `string` | Yes | One of `openai`, `brave`, `tavily`, `moonshot` |
+| `api_key` | `string` | No | Provider API key. When empty, falls back to the conventional environment variable (`OPENAI_API_KEY` / `BRAVE_API_KEY` / `TAVILY_API_KEY`) |
+| `base_url` | `string` | No | API base URL override |
+| `model` | `string` | No | Search model (OpenAI provider only; defaults to `gpt-5-mini`) |
+
+```toml
+[services.web_search]
+default_provider = "openai"
+
+[services.web_search.providers.openai]
+type = "openai"
+# api_key falls back to OPENAI_API_KEY when omitted
+
+[services.web_search.providers.brave]
+type = "brave"
+api_key = "brv-xxx"
+
+[services.web_search.providers.tavily]
+type = "tavily"
+api_key = "tvly-xxx"
+```
+
 ## `permission`
 
 `permission` sets permission rules that are automatically loaded when a session starts, controlling whether the Agent needs user confirmation before calling a tool. Rules are written as a `[[permission.rules]]` array of tables, matched in order — the first matching rule takes effect.

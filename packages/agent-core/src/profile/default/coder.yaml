@@ -15,4 +15,11 @@ tools:
   - Edit
   - WebSearch
   - FetchURL
+  - Agent
+  - TaskList
+  - TaskOutput
+  - TaskStop
+  - SendMessage
+  - CheckMessages
+  - ListAgents
   - mcp__*

@@ -91,6 +91,10 @@ export const LoopControlSchema = z.object({
   maxRalphIterations: z.number().int().min(-1).optional(),
   reservedContextSize: z.number().int().min(0).optional(),
   compactionTriggerRatio: z.number().min(0.5).max(0.99).optional(),
+  // Maximum subagent nesting depth. The main agent is depth 0; an agent may
+  // launch subagents only while its own depth is below this limit. Default 2
+  // allows main -> subagent -> sub-subagent.
+  maxAgentDepth: z.number().int().min(1).optional(),
 });
 
 export type LoopControl = z.infer<typeof LoopControlSchema>;
@@ -128,9 +132,32 @@ export const MoonshotServiceConfigSchema = z.object({
 
 export type MoonshotServiceConfig = z.infer<typeof MoonshotServiceConfigSchema>;
 
+// A single pluggable web-search provider. `apiKey` falls back to the
+// conventional environment variable (OPENAI_API_KEY / BRAVE_API_KEY /
+// TAVILY_API_KEY) when empty. `model` applies to the OpenAI provider only.
+export const WebSearchProviderConfigSchema = z.object({
+  type: z.enum(['openai', 'brave', 'tavily', 'moonshot']),
+  apiKey: z.string().optional(),
+  baseUrl: z.string().optional(),
+  model: z.string().optional(),
+});
+
+export type WebSearchProviderConfig = z.infer<typeof WebSearchProviderConfigSchema>;
+
+// Pluggable web-search configuration. When present, the WebSearch tool can
+// select among named providers; `defaultProvider` is used when the model does
+// not pick one explicitly.
+export const WebSearchConfigSchema = z.object({
+  defaultProvider: z.string().optional(),
+  providers: z.record(z.string(), WebSearchProviderConfigSchema).default({}),
+});
+
+export type WebSearchConfig = z.infer<typeof WebSearchConfigSchema>;
+
 export const ServicesConfigSchema = z.object({
   moonshotSearch: MoonshotServiceConfigSchema.optional(),
   moonshotFetch: MoonshotServiceConfigSchema.optional(),
+  webSearch: WebSearchConfigSchema.optional(),
 });
 
 export type ServicesConfig = z.infer<typeof ServicesConfigSchema>;
@@ -221,6 +248,7 @@ const MoonshotServiceConfigPatchSchema = MoonshotServiceConfigSchema.partial();
 const ServicesConfigPatchSchema = z.object({
   moonshotSearch: MoonshotServiceConfigPatchSchema.optional(),
   moonshotFetch: MoonshotServiceConfigPatchSchema.optional(),
+  webSearch: WebSearchConfigSchema.optional(),
 });
 
 export const KimiConfigPatchSchema = z
