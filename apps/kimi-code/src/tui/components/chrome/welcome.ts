@@ -32,7 +32,7 @@ export class WelcomeComponent implements Component {
     const textWidth = Math.max(4, innerWidth - logoWidth - gap.length);
 
     const rightRow0 = truncateToWidth(
-      chalk.bold.hex(currentTheme.palette.primary)('Welcome to Kimi Code!'),
+      chalk.bold.hex(currentTheme.palette.primary)('Welcome to Rain!'),
       textWidth,
       '…',
     );
