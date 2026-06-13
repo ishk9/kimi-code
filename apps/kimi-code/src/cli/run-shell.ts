@@ -140,7 +140,7 @@ export async function runShell(
     const gutter = ' '.repeat(CHROME_GUTTER);
     process.stdout.write(`${gutter}Bye!\n`);
     if (sessionId !== '' && hasContent) {
-      process.stderr.write(`\n${gutter}To resume this session: kimi -r ${sessionId}\n`);
+      process.stderr.write(`\n${gutter}To resume this session: rain -r ${sessionId}\n`);
     }
     process.exit(exitCode);
   };

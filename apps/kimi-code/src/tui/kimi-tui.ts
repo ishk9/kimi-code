@@ -561,7 +561,7 @@ export class KimiTUI {
               `${currentTheme.fg(
                 'warning',
                 `Session "${startup.sessionFlag}" was created under a different directory.\n` +
-                  `  cd "${target.workDir}" && kimi -r ${startup.sessionFlag}`,
+                  `  cd "${target.workDir}" && rain -r ${startup.sessionFlag}`,
               )}\n\n`,
             );
             throw new Error(

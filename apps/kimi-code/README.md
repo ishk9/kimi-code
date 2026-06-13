@@ -29,7 +29,7 @@ irm https://code.kimi.com/kimi-code/install.ps1 | iex
 Then run it with a new Terminal session:
 
 ```sh
-kimi --version
+rain --version
 ```
 
 ### Alternative: npm
@@ -54,7 +54,7 @@ Open a project and start the interactive UI:
 
 ```sh
 cd your-project
-kimi
+rain
 ```
 
 On first launch, run `/login` inside Kimi Code CLI and choose either Kimi Code OAuth or a Kimi Platform API key. After login, try a first task:

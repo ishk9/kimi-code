@@ -50,9 +50,9 @@ const versionOutput = await runBundle(['--version']);
 assertIncludes(versionOutput, expectedVersion, '--version');
 
 const helpOutput = await runBundle(['--help']);
-assertIncludes(helpOutput, 'Usage: kimi', '--help');
+assertIncludes(helpOutput, 'Usage: rain', '--help');
 
 const exportHelpOutput = await runBundle(['export', '--help']);
-assertIncludes(exportHelpOutput, 'Usage: kimi export', 'export --help');
+assertIncludes(exportHelpOutput, 'Usage: rain export', 'export --help');
 
 console.log(`Bundle smoke passed: ${bundlePath}`);

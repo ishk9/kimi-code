@@ -37,13 +37,13 @@ describe('targetTriple', () => {
 });
 
 describe('executableName', () => {
-  it('returns kimi.exe on win32', () => {
-    expect(executableName('win32')).toBe('kimi.exe');
+  it('returns rain.exe on win32', () => {
+    expect(executableName('win32')).toBe('rain.exe');
   });
 
-  it('returns kimi on other platforms', () => {
-    expect(executableName('darwin')).toBe('kimi');
-    expect(executableName('linux')).toBe('kimi');
+  it('returns rain on other platforms', () => {
+    expect(executableName('darwin')).toBe('rain');
+    expect(executableName('linux')).toBe('rain');
   });
 });
 
@@ -58,10 +58,10 @@ describe('path helpers', () => {
 
   it('returns absolute bin path with executable name', () => {
     expect(nativeBinPath('darwin-arm64', 'darwin')).toBe(
-      `${appRoot}/dist-native/bin/darwin-arm64/kimi`,
+      `${appRoot}/dist-native/bin/darwin-arm64/rain`,
     );
     expect(nativeBinPath('win32-x64', 'win32')).toBe(
-      `${appRoot}/dist-native/bin/win32-x64/kimi.exe`,
+      `${appRoot}/dist-native/bin/win32-x64/rain.exe`,
     );
   });
 
