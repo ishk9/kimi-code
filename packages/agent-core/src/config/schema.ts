@@ -79,8 +79,18 @@ export const PermissionRuleSchema = z.object({
   reason: z.string().optional(),
 });
 
+/**
+ * Granularity used when the user picks "Approve for this session":
+ *   - `rule` — cache the exact invocation (e.g. `Bash(printf hi)`), so a
+ *     different command/argument asks again. (default, safest)
+ *   - `tool` — cache the whole tool (e.g. `Bash`), so the tool is only ever
+ *     approved once per session and never prompts again.
+ */
+export const SessionApprovalScopeSchema = z.enum(['rule', 'tool']);
+
 export const PermissionConfigSchema = z.object({
   rules: z.array(PermissionRuleSchema).optional(),
+  sessionApprovalScope: SessionApprovalScopeSchema.optional(),
 });
 
 export type PermissionConfig = z.infer<typeof PermissionConfigSchema>;

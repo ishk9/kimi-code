@@ -10,7 +10,11 @@ import { proxyWithExtraPayload } from '#/rpc/types';
 
 import { Agent, type AgentOptions, type AgentType } from '../agent';
 import { HookEngine, type HookDef } from './hooks';
-import type { PermissionManagerOptions, PermissionRule } from '../agent/permission';
+import type {
+  PermissionManagerOptions,
+  PermissionRule,
+  SessionApprovalScope,
+} from '../agent/permission';
 import { parseBooleanEnv, resolveConfigValue, type BackgroundConfig } from '../config';
 import { makeErrorPayload } from '../errors';
 import {
@@ -56,6 +60,7 @@ export interface SessionOptions {
   readonly background?: BackgroundConfig | undefined;
   readonly hooks?: readonly HookDef[];
   readonly permissionRules?: readonly PermissionRule[];
+  readonly sessionApprovalScope?: SessionApprovalScope;
   readonly skills?: SessionSkillConfig;
   readonly mcpConfig?: SessionMcpConfig;
   readonly telemetry?: TelemetryClient | undefined;
@@ -586,6 +591,7 @@ export class Session {
       return {
         ...input,
         initialRules: input?.initialRules ?? this.options.permissionRules,
+        sessionApprovalScope: input?.sessionApprovalScope ?? this.options.sessionApprovalScope,
       };
     }
     return {

@@ -2259,6 +2259,52 @@ describe('Agent-local approve for session', () => {
     expect(manager.sessionApprovalRulePatterns).toContain('Custom');
   });
 
+  it('caches at tool granularity when sessionApprovalScope is "tool"', async () => {
+    const { manager, record, requestApproval } = makePermissionManager(
+      async () => ({
+        decision: 'approved',
+        scope: 'session',
+        selectedLabel: 'Approve for this session',
+      }),
+      { sessionApprovalScope: 'tool' },
+    );
+
+    // First Bash command prompts and caches the whole tool by name.
+    await expect(
+      manager.beforeToolCall(hookContext({ id: 'call_1', args: { command: 'printf first', timeout: 60 } })),
+    ).resolves.toBeUndefined();
+    expect(record).toHaveBeenCalledWith(
+      expect.objectContaining({ toolName: 'Bash', sessionApprovalRule: 'Bash' }),
+    );
+    expect(manager.sessionApprovalRulePatterns).toContain('Bash');
+
+    // A DIFFERENT Bash command is auto-approved (would re-prompt under 'rule').
+    await expect(
+      manager.beforeToolCall(hookContext({ id: 'call_2', args: { command: 'printf second', timeout: 60 } })),
+    ).resolves.toBeUndefined();
+    await expect(
+      manager.beforeToolCall(hookContext({ id: 'call_3', args: { command: 'rm -rf build', timeout: 60 } })),
+    ).resolves.toBeUndefined();
+
+    expect(requestApproval).toHaveBeenCalledTimes(1);
+  });
+
+  it('defaults to rule granularity (re-prompts a different command)', async () => {
+    const { manager, requestApproval } = makePermissionManager(async () => ({
+      decision: 'approved',
+      scope: 'session',
+    }));
+
+    await expect(
+      manager.beforeToolCall(hookContext({ id: 'call_1', args: { command: 'printf first', timeout: 60 } })),
+    ).resolves.toBeUndefined();
+    await expect(
+      manager.beforeToolCall(hookContext({ id: 'call_2', args: { command: 'printf second', timeout: 60 } })),
+    ).resolves.toBeUndefined();
+
+    expect(requestApproval).toHaveBeenCalledTimes(2);
+  });
+
   it('stores runtime rules with literal glob escaping', async () => {
     const { manager, requestApproval } = makePermissionManager(async () => ({
       decision: 'approved',
@@ -3684,6 +3730,7 @@ function makePermissionManager(
     readonly hooks?: Agent['hooks'];
     readonly approvalRpc?: boolean;
     readonly swarmModeActive?: boolean;
+    readonly sessionApprovalScope?: 'rule' | 'tool';
   } = {},
 ): {
   manager: PermissionManager;

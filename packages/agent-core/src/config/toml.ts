@@ -378,6 +378,7 @@ function transformPermissionData(data: Record<string, unknown>): Record<string, 
   if (rules.length > 0) {
     out['rules'] = rules;
   }
+  setDefined(out, 'sessionApprovalScope', raw['sessionApprovalScope']);
   return out;
 }
 
@@ -615,6 +616,8 @@ function permissionToToml(
   } else {
     delete out['rules'];
   }
+  delete out['session_approval_scope'];
+  setDefined(out, 'session_approval_scope', permission.sessionApprovalScope);
   return out;
 }
 

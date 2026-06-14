@@ -261,10 +261,18 @@ download_dir = ".kimi-code/downloads"
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
+| `session_approval_scope` | `string` | No | Granularity of the "Approve for this session" choice: `rule` (default — caches the exact invocation, e.g. `Bash(printf hi)`, so a different command/file/action asks again) or `tool` (caches the whole tool by name, so once you approve a tool for the session you are never prompted for it again) |
 | `decision` | `string` | Yes | Action on match: `allow` (permit immediately), `deny` (reject immediately), `ask` (prompt each time) |
 | `scope` | `string` | No | Rule scope: `turn-override`, `session-runtime`, `project`, `user`; defaults to `user` |
 | `pattern` | `string` | Yes | Match pattern in the form `ToolName` or `ToolName(arg-pattern)`, e.g. `Read` or `Bash(rm -rf*)` |
 | `reason` | `string` | No | Rule description for debugging and auditing |
+
+Set `session_approval_scope = "tool"` if the Agent prompts too often: the first time it needs a tool you pick **Approve for this session**, and that tool is then trusted for the rest of the session (a different command or file no longer re-prompts). This is a middle ground between `manual` (prompt every time) and `auto`/`yolo` (never prompt). `Approve once` is still one-shot regardless of this setting.
+
+```toml
+[permission]
+session_approval_scope = "tool"
+```
 
 Built-in tool names are listed in [Built-in tools](../reference/tools.md). Most built-in tools that accept rule arguments define their own matching subject, such as `Bash(command-pattern)` or `Read(path-pattern)`. `AgentSwarm`, MCP tools, and custom tools can only be matched by tool name — argument patterns are not supported for them.
 

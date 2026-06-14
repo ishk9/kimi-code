@@ -246,6 +246,23 @@ max_agent_depth = 3
     expect(roundTripped.loopControl?.maxAgentDepth).toBe(3);
   });
 
+  it('parses and round-trips permission.session_approval_scope', async () => {
+    const dir = makeTempDir();
+    const configPath = join(dir, 'session-approval-scope.toml');
+    const toml = `
+[permission]
+session_approval_scope = "tool"
+`;
+    const config = parseConfigString(toml, configPath);
+    expect(config.permission?.sessionApprovalScope).toBe('tool');
+
+    await writeConfigFile(configPath, config);
+    const text = await readFile(configPath, 'utf-8');
+    expect(text).toContain('session_approval_scope = "tool"');
+    const roundTripped = parseConfigString(text, configPath);
+    expect(roundTripped.permission?.sessionApprovalScope).toBe('tool');
+  });
+
   it('parses and round-trips the browser section with camel/snake conversion', async () => {
     const dir = makeTempDir();
     const configPath = join(dir, 'browser.toml');

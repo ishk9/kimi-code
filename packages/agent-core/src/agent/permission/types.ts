@@ -22,6 +22,16 @@ export type PermissionRuleScope = 'turn-override' | 'session-runtime' | 'project
 export type PermissionMode = 'manual' | 'yolo' | 'auto';
 
 /**
+ * Granularity of the cache written when the user picks "Approve for this
+ * session":
+ *   - `rule` — cache the exact invocation (per command / per file / per
+ *     action); a different invocation asks again. (default)
+ *   - `tool` — cache the whole tool by name, so the tool is approved once per
+ *     session and never prompts again.
+ */
+export type SessionApprovalScope = 'rule' | 'tool';
+
+/**
  * A single permission rule. `pattern` is the DSL form (`Read(/etc/**)`,
  * `Bash(rm *)`, or bare `Write`). Rule arguments are interpreted only by
  * tools that provide a matcher; other tools match by name only.

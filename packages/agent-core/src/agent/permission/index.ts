@@ -11,6 +11,7 @@ import type {
   PermissionPolicyResolution,
   PermissionPolicyResult,
   PermissionRule,
+  SessionApprovalScope,
 } from './types';
 
 export * from './types';
@@ -18,6 +19,12 @@ export * from './types';
 export interface PermissionManagerOptions {
   readonly initialRules?: readonly PermissionRule[];
   readonly parent?: PermissionManager;
+  /**
+   * Granularity for "Approve for this session" caching. When `tool`, the first
+   * approval of a tool suppresses every later prompt for that tool this
+   * session. Inherited from the parent agent when omitted; defaults to `rule`.
+   */
+  readonly sessionApprovalScope?: SessionApprovalScope;
 }
 
 interface PolicyEvaluation {
@@ -30,6 +37,7 @@ export class PermissionManager {
   readonly rules: PermissionRule[] = [];
   private modeOverride: PermissionMode | undefined;
   private readonly parent: PermissionManager | undefined;
+  private readonly sessionApprovalScopeOverride: SessionApprovalScope | undefined;
   private readonly localSessionApprovalRulePatterns = new Set<string>();
 
   constructor(
@@ -38,7 +46,13 @@ export class PermissionManager {
   ) {
     this.rules = [...(options.initialRules ?? [])];
     this.parent = options.parent;
+    this.sessionApprovalScopeOverride = options.sessionApprovalScope;
     this.policies = createPermissionDecisionPolicies(this.agent);
+  }
+
+  /** Effective session-approval granularity, inherited from the parent agent. */
+  get sessionApprovalScope(): SessionApprovalScope {
+    return this.sessionApprovalScopeOverride ?? this.parent?.sessionApprovalScope ?? 'rule';
   }
 
   get mode(): PermissionMode {
@@ -191,7 +205,9 @@ export class PermissionManager {
 
     const sessionApprovalRule =
       response.decision === 'approved' && response.scope === 'session'
-        ? context.execution.approvalRule
+        ? this.sessionApprovalScope === 'tool'
+          ? name
+          : context.execution.approvalRule
         : undefined;
 
     if (requestedApproval) {
